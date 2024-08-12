@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BookRequest;
-use App\Http\Requests\CategoryRequest;
-use App\Models\Books;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\BookRequest; 
+use App\Models\Books; 
+use Illuminate\Support\Facades\Storage; 
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary; 
 
 class BookController extends Controller
 {
@@ -30,14 +29,24 @@ class BookController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->storeAs('public/images', $imageName);
-            $path = env('APP_URL') . '/storage/images/';
-            $data['image'] = $path . $imageName;
-        }
+        // if ($request->hasFile('image')) {
+        //     $imageName = time() . '.' . $request->image->extension();
+        //     $request->image->storeAs('public/images', $imageName);
+        //     $path = env('APP_URL') . '/storage/images/';
+        //     $data['image'] = $path . $imageName;
+        // }
 
-        Books::create($data);
+        $uploadedFileUrl = Cloudinary::upload($request->file('image')->getRealPath())->getSecurePath();
+        
+        Books::create([
+            'title' => $data['title'],
+            'author' => $data['author'],
+            'year' => $data['year'],
+            'summary' => $data['summary'],
+            'image' => $uploadedFileUrl,
+            'stock' => $data['stock'],
+            'category_id' => $data['category_id'], 
+        ]);
 
         return response()->json([
             'message' => 'success'
