@@ -80,19 +80,16 @@ class BookController extends Controller
             ], 404);
         }
 
-        if ($request->hasFile('image')) {
-            if ($book->image) {
-                $imageName = basename($book->image);
-                Storage::delete('public/images/' . $imageName);
-            }
-
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->storeAs('public/images', $imageName);
-            $path = env('APP_URL') . '/storage/images/';
-            $data['image'] = $path . $imageName;
-        }
-
-        $book->update($data);
+        $uploadedFileUrl = Cloudinary::upload($request->file('image')->getRealPath())->getSecurePath();
+        $book->update([
+            'title' => $data['title'],
+            'author' => $data['author'],
+            'year' => $data['year'],
+            'summary' => $data['summary'],
+            'image' => $uploadedFileUrl,
+            'stock' => $data['stock'],
+            'category_id' => $data['category_id'], 
+        ]);
 
         return response()->json([
             'message' => 'success'
